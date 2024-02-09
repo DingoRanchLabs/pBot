@@ -1,0 +1,30 @@
+body{
+	background-color: #333;
+	color:#eee;
+}
+
+#header{
+	padding-top: 60px;
+	padding-bottom: 35px;
+	background-color: #222;
+}
+#subheader{
+	padding-bottom: 60px;
+	background-color: #222;
+}
+
+.supportive{
+	padding-top: 20px;
+	padding-left: 90px;
+	padding-right: 90px;
+	padding-bottom: 20px;
+}
+h4{
+	display: inline;
+}
+
+.abg{background-color: #333;}
+.bbg{background-color: #444;}
+.cbg{background-color: #555;}
+.dbg{background-color: #666;}
+.ebg{background-color: #777;}

@@ -1,5 +1,5 @@
 body{
-	background-color: #333;
+	background-color: #0d1118;
 	color:#eee;
 }
 
@@ -12,6 +12,18 @@ body{
 	padding-bottom: 60px;
 	background-color: #222;
 }
+#footer{
+	padding-top: 15px;
+	margin-top: 30px;
+	margin-bottom: 77px;
+	border-top:1px dashed #222;
+	color:#555;
+}
+
+.yeahbut{
+	margin-top: 60px;
+}
+
 
 .supportive{
 	padding-top: 20px;
@@ -23,8 +35,6 @@ h4{
 	display: inline;
 }
 
-.abg{background-color: #333;}
-.bbg{background-color: #444;}
-.cbg{background-color: #555;}
-.dbg{background-color: #666;}
-.ebg{background-color: #777;}
+.subtle{
+	color:#777
+}

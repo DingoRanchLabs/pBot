@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+
+
+<div class="row" id="breadcrumbs">
+	<div class="col">
+		<a href="{{ url_for('index') }}"><i class="bi bi-house"></i></a> /
+		<a href="{{ url_for('users') }}">Users</a> /
+		<a href="{{ url_for('user', user_id=user['id']) }}"><em>{{ user["name"] }}</em></a> /
+		Messages
+	</div>
+</div>
+
+
+
+
+<script>
+	function get_date_range(){
+		return [
+			document.getElementById("startDate").value,
+			document.getElementById("stoptDate").value]
+	}
+
+	function user_messages_by_time(){
+		let [start, stop] = get_date_range();
+		window.location="/user/{{ user['id'] }}/messages?start="+start+"&stop="+stop;
+	}
+</script>
+<div class="row date_range_widget">
+	<div class="col">
+		<form>
+			<input id="startDate"  type="datetime-local" value="{{ start }}" />
+			<input id="stoptDate" type="datetime-local" value="{{ stop }}" />
+			<button type="button" class="btn btn-link" onclick="user_messages_by_time()">Update Date Range</button>
+		</form>
+	</div>
+</div>
+
+{% set include_channel = True %}
+{% set include_user = False %}
+{% set include_dates = True %}
+
+
+<div class="row">
+	<div class="col">
+
+
+
+		{% include '_messages.html' %}
+
+
+	</div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,92 @@
+# Base compose file.
+
+services:
+
+  testdb: # dev only
+    image: redis/redis-stack-server
+    container_name: pbot-redis-test
+    ports:
+    - '1111:6379'
+    platform: linux/arm64
+    networks:
+    - backend
+
+  redis: 
+    image: redis/redis-stack-server
+    container_name: pbot-redis
+    ports:
+    - '6379:6379' 
+    platform: linux/arm64
+    volumes:
+     - redis_data:/data
+    networks:
+    - backend
+
+  redis-insight: # dev only
+    image: redislabs/redisinsight:latest
+    container_name: pbot-redis-insight
+    ports:
+    - '8001:8001'
+    # platform: linux/arm64 
+    depends_on:
+    - redis
+    networks:
+    - frontend
+    - backend
+
+  bot:
+    container_name: pbot-bot
+    build:
+      context: ../
+      dockerfile: services/bot/Dockerfile     
+    ports:
+    - "6666:6666"
+    volumes:
+    - ../services/bot/src:/src
+    depends_on:
+    - redis
+    networks:
+    - backend
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - OPENAI_KEY=${OPENAI_KEY}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - TEST_REDIS_HOST=${TEST_REDIS_HOST}
+      - TEST_REDIS_PORT=${TEST_REDIS_PORT}
+
+  listener:
+    container_name: pbot-listener
+    build:
+      context: ./services/listener
+      dockerfile: Dockerfile     
+    volumes:
+    - ../services/listener/src:/src
+    depends_on:
+    - redis
+    networks:
+    - backend
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+
+  admin:
+    build:
+      context: ./services/admin
+      dockerfile: Dockerfile          
+    container_name: pbot-admin
+    ports:
+    - "7777:7777"
+    volumes:
+    - ../services/admin/src:/src
+    depends_on:
+    - redis
+    networks:
+    - frontend
+    - backend
+
+volumes:
+  redis_data:
+
+networks:
+  backend:
+  frontend:

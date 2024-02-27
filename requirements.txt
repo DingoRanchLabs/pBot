@@ -1,0 +1,5 @@
+# Development Python Requirements
+docker
+invoke
+discord
+pylint

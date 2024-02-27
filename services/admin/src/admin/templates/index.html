@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="row" id="breadcrumbs">
+	<div class="col">
+		<i class="bi bi-house"></i>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-2">
+		<ul id="" class="list_nav">
+			<li><a href="{{ url_for('servers') }}">Servers</a></li>
+			<li><a href="{{ url_for('users') }}">Users</a></li>
+			<li><a href="{{ url_for('sandbox') }}">Sandbox</a></li>
+			<li><a href="{{ url_for('settings') }}">Settings</a></li>
+			<li><a href="{{ url_for('docs') }}">Docs</a></li>
+		</ul>
+	</div>
+	<div class="col-10">
+		<p>Status</p>
+		Servers {{server_count}}<br/>
+		Users {{user_count}}<br/>
+		Channels {{channel_count}}<br/>
+		Messages {{message_count}}<br/>
+		Attachments {{attachment_count}}<br/>
+		Links {{link_count}}<br/>
+
+
+
+
+	</div>
+</div>
+
+
+
+
+
+
+
+
+
+{% endblock %}

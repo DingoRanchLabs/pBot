@@ -1,0 +1,9 @@
+openai
+tiktoken
+redis
+discord
+python-dotenv
+ratelimit
+asyncio
+pytest
+pylint

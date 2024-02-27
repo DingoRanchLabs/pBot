@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+<div class="row" id="breadcrumbs">
+	<div class="col">
+		<a href="{{ url_for('index') }}"><i class="bi bi-house"></i></a> /
+		<a href="{{ url_for('servers') }}">servers</a> /
+		<a href="{{ url_for('server', server_id=server['id']) }}"><em>{{ server['name'] }}</em></a> /
+		<a href="{{ url_for('server_channels', server_id=server['id']) }}">Channels</a> /
+		<em>{{channel["name"]}}</em>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-2">
+		<ul class="list_nav">
+			<li><a href="{{ url_for('channel_messages', channel_id=channel['id']) }}">Messages</a></li>
+			<li><a href="{{ url_for('channel_users', channel_id=channel['id']) }}">Users</a></li>
+			<li><a href="{{url_for('channel_settings', channel_id=channel['id'])}}">Settings</a></li>
+		</ul>
+	</div>
+	<div class="col-10">
+	</div>
+</div>
+
+{% endblock %}

@@ -11,11 +11,11 @@ services:
     networks:
     - backend
 
-  redis: 
+  redis:
     image: redis/redis-stack-server
     container_name: pbot-redis
     ports:
-    - '6379:6379' 
+    - '6379:6379'
     platform: linux/arm64
     volumes:
      - redis_data:/data
@@ -23,22 +23,25 @@ services:
     - backend
 
   redis-insight: # dev only
-    image: redislabs/redisinsight:latest
+    image: redis/redisinsight:latest
     container_name: pbot-redis-insight
     ports:
-    - '8001:8001'
-    # platform: linux/arm64 
+    - '5540:5540'
+    # platform: linux/arm64
     depends_on:
     - redis
     networks:
     - frontend
     - backend
+    volumes:
+     - redis_insight:/data
+
 
   bot:
     container_name: pbot-bot
     build:
       context: ../
-      dockerfile: services/bot/Dockerfile     
+      dockerfile: services/bot/Dockerfile
     ports:
     - "6666:6666"
     volumes:
@@ -55,13 +58,13 @@ services:
       - TEST_REDIS_HOST=${TEST_REDIS_HOST}
       - TEST_REDIS_PORT=${TEST_REDIS_PORT}
 
-  listener:
-    container_name: pbot-listener
+  transceiver:
+    container_name: pbot-transceiver
     build:
-      context: ./services/listener
-      dockerfile: Dockerfile     
+      context: ./services/transceiver
+      dockerfile: Dockerfile
     volumes:
-    - ../services/listener/src:/src
+    - ../services/transceiver/src:/src
     depends_on:
     - redis
     networks:
@@ -72,7 +75,7 @@ services:
   admin:
     build:
       context: ./services/admin
-      dockerfile: Dockerfile          
+      dockerfile: Dockerfile
     container_name: pbot-admin
     ports:
     - "7777:7777"
@@ -86,6 +89,7 @@ services:
 
 volumes:
   redis_data:
+  redis_insight:
 
 networks:
   backend:

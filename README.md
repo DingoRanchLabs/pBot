@@ -121,3 +121,8 @@ self-documenting as possible.
 - rate limiting
 - Incite chaos!
 - document invoke usage
+- trim old redis lists by message expiry:
+  - messages
+  - user:9:messages
+  - channel:7:messages
+  - server:5:messages

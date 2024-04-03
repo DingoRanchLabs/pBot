@@ -9,6 +9,16 @@ from datetime import datetime, timedelta
 from openai import OpenAI
 import tiktoken
 
+
+
+REDIS_MESSAGE_KEY_PREFIX = "message"
+
+REDIS_CHANNEL_KEY_PREFIX = "channel"
+REDIS_MESSAGES_KEY = "messages"
+
+
+####
+
 AFFINITY_WORDS = [] # FIXME:
 PHOBIC_WORDS = [] # FIXME:
 MAX_INPUT_TOKEN_LENGTH = 2000
@@ -34,7 +44,7 @@ def channel_message_ids(redis_client, channel_id, hours=1, minutes=0):
     Returns a list of channel's message ids within time window.
     """
 
-    msg_key = "channel:"+channel_id+":messages"
+    msg_key = f"{REDIS_CHANNEL_KEY_PREFIX}:{channel_id}:{REDIS_MESSAGES_KEY}"
     cutoff = (datetime.now() - timedelta(hours=hours, minutes=minutes)).timestamp()
     message_ids = redis_client.zrangebyscore(msg_key, cutoff, "+inf")
     return message_ids
@@ -46,7 +56,7 @@ def get_messages(redis_client, message_ids):
 
     messages = []
     for message_id in message_ids:
-        message = redis_client.hgetall("message:"+message_id)
+        message = redis_client.json().get(f"{REDIS_MESSAGE_KEY_PREFIX}:{message_id}")
         messages.append(message)
     return messages
 
@@ -86,18 +96,18 @@ def trim_message_history(messages, max_tokens=MAX_INPUT_TOKEN_LENGTH):
     """
 
     token_count = 0
-
-    messages.sort(key=lambda x: float(x["timestamp"]), reverse=True) # descending
+    messages.sort(key=lambda x: float(x["time"]), reverse=True) # descending
     cutoff_index = None
 
+    # FIXME: this will explode if the newest message exceeds max_tokens!
     for i, msg in enumerate(messages):
         # Handle exceeding length limit.
         if token_count + num_tokens_from_string(msg["content"]) > max_tokens:
             cutoff_index = i
             break
-
-        # Handle acceptable message length.
-        token_count += num_tokens_from_string(msg["content"])
+        else:
+            # Handle acceptable message length.
+            token_count += num_tokens_from_string(msg["content"])
 
     # Trim history as needed.
     if cutoff_index:
@@ -110,7 +120,7 @@ def mark_as_read(redis_client, messages):
     Set read_at attr for messages.
     """
     for message in messages:
-        redis_client.hset("message:"+message["id"], "read_at", datetime.now().timestamp())
+        redis_client.json().set(f"message:{message['id']}", ".read", datetime.now().timestamp())
 
 def is_image(url_path):
     discord_friendly_image_files = [
@@ -127,10 +137,15 @@ def is_image(url_path):
 def response_chance(redis_client, messages): # FIXME: refator.
     """
     Determines the chance pbot will generate a response for message history and
-    provides the key message ID pbot should address and optionally, a url.
+    provides the key message ID pbot should address and an image url.
 
-    Returns a tuple (%chance, key_message_id)
+    Thoughts: Unless specifically called out, pbot should "decide" if a
+    conversation is worth its time.
+
+    Returns a tuple (%chance, key_message_id, image_url)
     """
+
+    # FIXME: much of this should be refactored out into other fns
 
     # Bounce on no messages.
     if len(messages) == 0:
@@ -145,51 +160,53 @@ def response_chance(redis_client, messages): # FIXME: refator.
     users = set()
     includes_image = False
 
-    messages.sort(key=lambda x: float(x["timestamp"]), reverse=False)  # ascending
+    messages.sort(key=lambda x: float(x["time"]), reverse=False)  # ascending
 
     assessed_messages = []
+
     for message in messages:
         assessed_messages.append(message)
 
         # Don't contribute bot comment to values
-        if message["bot"] == "1":
+        if message["user"]["bot"] == "1":
             continue
 
         affinity_word_count = 0
         phobic_word_count = 0
         word_count = 0
 
-        image_files = []
+        # image_files = []
+        # if hasattr(message, "images"):
+        #     image_files = message["images"]
 
-        if hasattr(message, "images"):
-            image_files = message["images"]
-
-        file_reference = None
-        if len(image_files) > 0:
-            file_reference = image_files[0] # FIXME:
+        # file_reference = None
+        # if len(image_files) > 0:
+        #     file_reference = image_files[0] # FIXME:
 
         conditions = [
             "pbot" in message["content"].lower(),
-            message["bot"] == "0",
-            message["read_at"] == "",
-            message["response_id"] == ""
+            int(message["user"]["bot"]) == 0,
+            not message["read"],
+            not message["response"]
         ]
 
         # Always address earliest direct references to bot.
         if all(conditions):
             #mark_as_read(assessed_messages) #??????????
-            return (sys.maxsize, message["id"], file_reference)
+            return (sys.maxsize, message["id"], None) # FIXME: file_reference is none....
 
         # Initial message interest value.
         message_values[message["id"]] = 0
 
         word_count = len((message["content"].split(" ")))
 
-        if message["bot"] == "0":
-            users.add(message["user_id"])
 
-        if len(image_files) > 0:
-            includes_image = True
+        if int(message["user"]["bot"]) == 0:
+            users.add(message["user"]["id"])
+
+
+        # if len(image_files) > 0:
+        #     includes_image = True
 
         for affinity_word in AFFINITY_WORDS:
             if affinity_word.lower() in message["content"].lower():
@@ -202,27 +219,33 @@ def response_chance(redis_client, messages): # FIXME: refator.
                 total_phobic_word_count += 1
 
         conditions = [
-            message["bot"] == "1", # Don't respond to bots.
+            int(message["user"]["bot"]) == 1, # Don't respond to bots.
             message["content"] == "", # Don't respond to empty messages.
-            message["read_at"] != "" # Don't respond to already reviewed and ignored messages.
+            message["read"] != "" # Don't respond to already reviewed and ignored messages.
         ]
 
         if any(conditions):
-            message_values[message["id"]] = -99
+            message_values[message["id"]] = -97 # why -99
         else:
             message_values[message["id"]] += (
                 affinity_word_count + (word_count * 0.15) - (phobic_word_count * 0.7)
             )
 
-            if includes_image:
-                message_values[message["id"]] += 5
+            # if includes_image:
+            #     message_values[message["id"]] += 5 # arb value for img
+
+    print("AAAAAA")
 
     # If there are no (real) users, bail.
     if (len(users)) == 0:
-        return (-99, None)
+        return (-99, None, None) # why -99?
 
-    start = datetime.fromtimestamp(float(messages[0]["timestamp"]))
-    end = datetime.fromtimestamp(float(messages[-1]["timestamp"]))
+    print("BBBBB")
+
+
+    # Determine conversation duration
+    start = datetime.fromtimestamp(float(messages[0]["time"]))
+    end = datetime.fromtimestamp(float(messages[-1]["time"]))
     duration_in_m = (end - start).total_seconds() / 60
 
     modifier = 0  # starting chance
@@ -237,17 +260,16 @@ def response_chance(redis_client, messages): # FIXME: refator.
 
     modifier -= total_phobic_word_count * 0.1
 
-    if includes_image:
-        modifier += 10
+    # if includes_image:
+    #     modifier += 10 # doing this again?
 
     key_message_id = max(message_values, key=message_values.get)
 
     key_message = list(filter(lambda x:x["id"]==key_message_id, messages))[0]
 
+    # get image if one
     image_ref = None
-
     if hasattr(key_message, "images"):
-
         if len(key_message["images"]) > 0:
             image_ref = key_message["images"][0]
 
@@ -261,15 +283,15 @@ def generate_response(openai_client, messages, target_message_id, persona, instr
 
     scene = []
 
-    messages.sort(key=lambda x: float(x["timestamp"]), reverse=False) # ascending
+    messages.sort(key=lambda x: float(x["time"]), reverse=False) # ascending
 
     message_history_as_str = ""
 
     for message in messages:
-        username = message["user_name"]
+        username = message["user"]["name"]
         # Use server nick if present.
-        if message["user_nick"] != "":
-            username = message["user_nick"]
+        if message["user"]["nick"] != "":
+            username = message["user"]["nick"]
 
         message_history_as_str += f"{username}:{message['content']}\n"
 
@@ -299,7 +321,7 @@ def generate_response(openai_client, messages, target_message_id, persona, instr
             model="gpt-3.5-turbo",
             temperature=1,  # 0-2 # vary this by if being asked for real info or not
             n=1,
-            user=key_message["user_name"],
+            user=key_message["user"]["name"],
         )
 
         return chat_completion

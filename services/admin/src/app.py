@@ -3,7 +3,7 @@ Bot admin
 """
 from datetime import datetime, timedelta
 #
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from redis import Redis
 
 app = Flask(
@@ -25,7 +25,28 @@ def format_history_window_querystring(message):
     return f"?start={start.isoformat().split('.')[0]}&stop={stop.isoformat().split('.')[0]}&highlight={message['id']}#{message['id']}"
 
 
+@app.template_filter()
+def format_num_to_answer(value, as_bools=False):
+    """
+    tbd
+    """
 
+    if as_bools:
+        zero = "False"
+        one  = "True"
+    else:
+        zero = "No"
+        one  = "Yes"
+
+    try:
+        if int(value) == 0:
+            return zero
+        else:
+            return one
+    except Exception as err:
+        pass
+
+    return
 
 @app.template_filter()
 def format_timestamp(value):
@@ -45,6 +66,11 @@ def format_message_author_name(message):
     return message["user_name"]
 
 redis_client = Redis(host="redis", port=6379, decode_responses=True)
+
+
+
+
+
 
 # ------------------------------------------------------------------------------
 
@@ -261,10 +287,12 @@ def server(server_id):
     """ A Discord server. """
 
     target_server = redis_client.hgetall("server:"+server_id)
+
     channels = []
     for channel_id in redis_client.smembers("server:"+server_id+":channels"):
         channels.append(redis_client.hgetall("channel:"+channel_id))
     channels.sort(key=lambda x:x["name"] )
+
     server_users = []
     for user_id in redis_client.smembers("server:"+server_id+":users"):
         server_users.append(redis_client.hgetall("user:"+user_id))
@@ -300,15 +328,44 @@ def server_users(server_id):
         'users.html',
         server=target_server, users=users)
 
-@app.route('/server/<server_id>/settings')
+
+
+
+
+
+
+
+
+@app.route('/server/<server_id>/settings', methods = ['POST', 'GET'])
 def server_settings(server_id):
-    """ Server Settings. """
+    """
+    Server Settings.
+    """
 
-    target_server = redis_client.hgetall("server:"+server_id)
+    if request.method == 'POST':
 
-    return render_template(
-        'server_settings.html',
-        server=target_server)
+        server_id = request.form['server_id']
+        parse_messages = request.form['parse_messages'] == "yes"
+        allow_generation = request.form['allow_generation'] == "yes"
+        send_responses = request.form['send_responses'] == "yes"
+
+        server = redis_client.hgetall(f"server:{server_id}")
+
+        print(server)
+
+        server["_parse_messages"] = "1" if parse_messages else "0"
+        server["_allow_generation"] = "1" if allow_generation else "0"
+        server["_send_responses"] = "1" if send_responses else "0"
+
+
+        redis_client.hset(f"server:{server_id}", mapping=server)
+        return redirect(url_for("server_settings",server_id=server_id ))
+    else:
+        target_server = redis_client.hgetall("server:"+server_id)
+
+        return render_template(
+            'server_settings.html',
+            server=target_server)
 
 # Basic routes -----------------------------------------------------------------
 

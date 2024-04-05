@@ -9,6 +9,8 @@ from datetime import datetime, timedelta
 from openai import OpenAI
 import tiktoken
 
+REDIS_RESPONSES_KEY = "responses"
+REDIS_RESPONSE_KEY_PREFIX = "response"
 
 
 REDIS_MESSAGE_KEY_PREFIX = "message"
@@ -24,6 +26,36 @@ PHOBIC_WORDS = [] # FIXME:
 MAX_INPUT_TOKEN_LENGTH = 2000
 MAX_TOTAL_TOKEN_LENGTH = 4097
 TOKEN_SLOP = 10
+
+
+
+
+def create_response(redis_client, response_id, content, target_message_id):
+
+    redis_client.json().set(f"{REDIS_MESSAGE_KEY_PREFIX}:{target_message_id}", ".response", response_id)
+
+    key_message = get_messages(redis_client, [target_message_id])[0]
+
+    k = f"{key_message['origin']['server']['id']}.{key_message['origin']['server']['channel']['id']}.{key_message['user']['id']}-{response_id}"
+
+    redis_client.zadd(REDIS_RESPONSES_KEY, {k: datetime.now().timestamp()})
+
+    redis_client.hset(
+        f"{REDIS_RESPONSE_KEY_PREFIX}:{response_id}",
+        mapping={
+            "user": key_message["user"]["id"],
+            "content": content,
+            "message": target_message_id,
+            "channel": key_message["origin"]["server"]["channel"]["id"],
+            "server": key_message["origin"]["server"]["id"],
+            "sent": "",
+            "time":datetime.now().timestamp()
+        },
+    )
+
+
+
+
 
 def active_channels(redis_client, msg_key="messages", hours=1, minutes=0):
     """
@@ -275,7 +307,7 @@ def response_chance(redis_client, messages): # FIXME: refator.
 
     return (modifier, key_message_id, image_ref)
 
-def generate_response(openai_client, messages, target_message_id, persona, instruction):
+def generate_response(openai_client, messages, target_message_id, prompt):
     """
     tbd
     """
@@ -301,10 +333,8 @@ def generate_response(openai_client, messages, target_message_id, persona, instr
         if len(key_message["images"]) > 0:
             raise Exception("dfdfd")
 
-    instruction = instruction.replace("chat_history", message_history_as_str)
-    instruction = instruction.replace("target_message", key_message["content"])
-
-    prompt = instruction + persona
+    prompt = prompt.replace('{chat_history}', message_history_as_str)
+    prompt = prompt.replace('{target_message}', key_message["content"])
 
     token_count = num_tokens_from_string(prompt)
 

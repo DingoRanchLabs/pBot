@@ -1,14 +1,15 @@
 """
-Logging to both stdout and file.
+	Logging to both stdout and file.
 """
 
 import logging
 import os
 
+
 # Params -----------------------------------------------------------------------
 
-NAME              = "pbot-listener"
-FILENAME          = "pbot-listener.log"
+NAME              = "pbot-transciever"
+FILENAME          = "pbot-transciever.log"
 FILE_LOG_LEVEL    = logging.NOTSET
 CONSOLE_LOG_LEVEL = FILE_LOG_LEVEL
 FILE_FORMAT       = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

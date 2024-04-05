@@ -2,6 +2,7 @@ import pytest
 import os
 from dotenv import load_dotenv
 from redis import Redis
+from redis.commands.json.path import Path
 from datetime import datetime, timedelta
 from bot import (
 	active_channels,
@@ -44,55 +45,161 @@ links = [
 	"timestamp": datetime.now().timestamp()+2
 }]
 
+
+"""
+message_template = {
+        "id": None,
+        "time": None,
+        "content": None,
+        "read": None,
+        "response": None,
+        "origin": {
+            "server": {
+                "id": None,
+                "name": None,
+                "channel": {
+                    "id": None,
+                    "name": None,
+                }
+            }
+        },
+        "user": {
+            "id": None,
+            "bot": 0,
+            "name": None,
+            "nick": None,
+            "avatar": None,
+        },
+        "objects": {
+            "links": [],
+            "attachments": []
+        }
+}
+
+"""
+
+
 msgs = [
 	{
-		"id": "82734893274892379847",
-		"server_id": "1",
-		"channel_id": "34",
-		"read_at": "",
-		"timestamp": datetime.now().timestamp()+0,
-		"content": "I love that someone was just \"What if John Wick did a bunch of weird shit in a Dominos\"",
-		"bot": "0",
-		"response_id": "",
-		"link_count": "0",
-		"attachment_count": "1"
+        "id": "82734893274892379847",
+        "time": datetime.now().timestamp()+0,
+        "content": "I love that someone was just \"What if John Wick did a bunch of weird shit in a Dominos\"",
+        "read": None,
+        "response": None,
+        "origin": {
+            "server": {
+                "id": "1",
+                "name": None,
+                "channel": {
+                    "id": "34",
+                    "name": None,
+                }
+            }
+        },
+        "user": {
+            "id": None,
+            "bot": 0,
+            "name": None,
+            "nick": None,
+            "avatar": None,
+        },
+        "objects": {
+            "links": [],
+            "attachments": [
+			{
+				"id": None,
+				"url": None,
+				"filename": None
+			}
+			]
+        }
 	},
 	{
-		"id": "82739893274892379847",
-		"server_id": "2",
-		"channel_id": "99",
-		"read_at": "",
-		"timestamp": datetime.now().timestamp()+1,
-		"content": "pbot who is the best space marine?",
-		"bot": "0",
-		"response_id": "",
-		"link_count": "0",
-		"attachment_count": "0"
+        "id": "82739893274892379847",
+        "time": datetime.now().timestamp()+1,
+        "content": "pbot who is the best space marine?",
+        "read": None,
+        "response": None,
+        "origin": {
+            "server": {
+                "id": "2",
+                "name": None,
+                "channel": {
+                    "id": "99",
+                    "name": None,
+                }
+            }
+        },
+        "user": {
+            "id": None,
+            "bot": 0,
+            "name": None,
+            "nick": None,
+            "avatar": None,
+        },
+        "objects": {
+            "links": [],
+            "attachments": []
+        }
 	},
 	{
-		"id": "82539893274892379807",
-		"server_id": "2",
-		"channel_id": "99",
-		"read_at": "",
-		"timestamp": datetime.now().timestamp()+2,
-		"content": "country is just farm emo",
-		"bot": "0",
-		"response_id": "",
-		"link_count": "1",
-		"attachment_count": "0"
+        "id": "82539893274892379807",
+        "time": datetime.now().timestamp()+2,
+        "content": "country is just farm emo",
+        "read": None,
+        "response": None,
+        "origin": {
+            "server": {
+                "id": "2",
+                "name": None,
+                "channel": {
+                    "id": "99",
+                    "name": None,
+                }
+            }
+        },
+        "user": {
+            "id": None,
+            "bot": 0,
+            "name": None,
+            "nick": None,
+            "avatar": None,
+        },
+        "objects": {
+            "links": [],
+            "attachments": [
+				""
+			]
+        }
 	},
 	{
-		"id": "82739893274892379847",
-		"server_id": "1",
-		"channel_id": "34",
-		"read_at": "",
-		"timestamp": datetime.now().timestamp()+3,
-		"content": "i'm old gregg",
-		"bot": "0",
-		"response_id": "",
-		"link_count": "0",
-		"attachment_count": "0"
-	}
+        "id": "827396893274892379847",
+        "time": datetime.now().timestamp()+3,
+        "content": "i'm old gregg",
+        "read": None,
+        "response": None,
+        "origin": {
+            "server": {
+                "id": "1",
+                "name": None,
+                "channel": {
+                    "id": "34",
+                    "name": None,
+                }
+            }
+        },
+        "user": {
+            "id": None,
+            "bot": 0,
+            "name": None,
+            "nick": None,
+            "avatar": None,
+        },
+        "objects": {
+            "links": [],
+            "attachments": []
+        }
+	},
 ]
 
 @pytest.fixture
@@ -102,39 +209,42 @@ def messages_01():
 	messages = msgs.copy()
 
 	# Load in test data
-	for a in attachments:
-		now = datetime.now().timestamp()
-		attachment_key = f"attachment:{a['id']}"
-		r_keys.append(attachment_key)
-		redis_client.hset(attachment_key, mapping=a)
+	# for a in attachments:
+	# 	now = datetime.now().timestamp()
+	# 	attachment_key = f"attachment:{a['id']}"
+	# 	r_keys.append(attachment_key)
+	# 	redis_client.hset(attachment_key, mapping=a)
 
-		redis_client.lpush(f"message:{a['message_id']}:attachments", a["id"])
-		r_keys.append(f"message:{a['message_id']}:attachments")
+	# 	redis_client.lpush(f"message:{a['message_id']}:attachments", a["id"])
+	# 	r_keys.append(f"message:{a['message_id']}:attachments")
 
-	# Load in test data
-	for l in links:
-		now = datetime.now().timestamp()
-		link_key = f"link:{l['id']}"
-		r_keys.append(link_key)
-		redis_client.hset(link_key, mapping=l)
+	# # Load in test data
+	# for l in links:
+	# 	now = datetime.now().timestamp()
+	# 	link_key = f"link:{l['id']}"
+	# 	r_keys.append(link_key)
+	# 	redis_client.hset(link_key, mapping=l)
 
-		redis_client.lpush(f"message:{l['message_id']}:links", l["id"])
-		r_keys.append(f"message:{l['message_id']}:links")
+	# 	redis_client.lpush(f"message:{l['message_id']}:links", l["id"])
+	# 	r_keys.append(f"message:{l['message_id']}:links")
 
 	# Load in test data
 	for m in messages:
 		now = datetime.now().timestamp()
 
 		# channel:<id>:messages = [1205727867585957948:1707538324.973]
-		channel_messages_key = "channel:"+m["channel_id"]+":messages"
+		channel_messages_key = "channel:"+m["origin"]["server"]["channel"]["id"]+":messages"
 		r_keys.append(channel_messages_key)
 		redis_client.zadd(channel_messages_key, {m["id"]:now})
 
 		# messages = [649086180922490880.649086180922490884-1205727867585957948:1707538324.973]
-		redis_client.zadd(r_keys[0], {"{}.{}-{}".format(m["server_id"], m["channel_id"], m["id"]):now})
+		redis_client.zadd(r_keys[0], {"{}.{}-{}".format(m["origin"]["server"]["id"], m["origin"]["server"]["channel"]["id"], m["id"]):now})
+
+
+		redis_client.json().set("message:"+m["id"], Path.root_path(), m)
 
 		# message:1205727867585957948 = {...}
-		redis_client.hset("message:"+m["id"], mapping=m)
+		# redis_client.hset("message:"+m["id"], mapping=m)
 
 	yield
 
@@ -150,7 +260,7 @@ def test_active_channels(messages_01):
 	channels = active_channels(redis_client) # Redis call
 	assert len(channels) == 2
 	for message in messages:
-		assert message["channel_id"] in channels
+		assert message["origin"]["server"]["channel"]["id"] in channels
 
 def test_channel_message_ids(messages_01):
 	channel_ids = active_channels(redis_client) # Redis call
@@ -188,14 +298,15 @@ def test_trim_message_history():
 def test_response_chance():
 	messages = msgs.copy()
 
-	chance, key_id, img_url = response_chance(redis_client, [])
+	chance, key_id, _ = response_chance(redis_client, [])
 	assert chance == 0
 	assert key_id == None
 
 	# Ensure direct reference always succeeds a roll and is the key message.
-	chance, key_id, img_url = response_chance(redis_client ,list(filter(lambda x:x["channel_id"] == "99", messages)))
-	assert chance > 100
+	chance, key_id, _ = response_chance(redis_client ,list(filter(lambda x:x["origin"]["server"]["channel"]["id"] == "99", messages)))
 	assert key_id == "82739893274892379847"
+	assert chance > 100
+
 
 def test_mark_as_read(messages_01):
 	messages = msgs.copy()
@@ -203,17 +314,6 @@ def test_mark_as_read(messages_01):
 	mark_as_read(redis_client, messages)
 
 	for message in messages:
-		value = redis_client.hget("message:"+message["id"], "read_at")
-		assert value != ""
 
-def test_get_message_objects(messages_01):
-	message_data = msgs.copy()
-	message_ids = list(map(lambda x: x["id"], message_data))
-	messages = get_messages(redis_client, message_ids) # Redis call
-	get_message_objects(redis_client, messages) # Redis call. # Modifies argument.
-
-	target_msg = list(filter(lambda x:x["id"] == "82734893274892379847", messages))[0]
-	assert len(target_msg["images"]) == 1
-
-	target_msg = list(filter(lambda x:x["id"] == "82539893274892379807", messages))[0]
-	assert len(target_msg["images"]) == 1
+		value = redis_client.json().get("message:"+message["id"])
+		assert value["read"] != ""

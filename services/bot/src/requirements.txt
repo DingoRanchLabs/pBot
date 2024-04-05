@@ -1,3 +1,5 @@
+# Bot Python Requirements
+
 openai
 tiktoken
 redis

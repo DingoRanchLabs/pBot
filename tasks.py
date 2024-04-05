@@ -1,15 +1,15 @@
 """
-General dev tasks.
+	General dev tasks.
 """
+
 import subprocess
-#
 from invoke import task
 import docker
 
 
 CUSTOM_DOCKER_IMAGES = [
 	"pbot-bot",
-	"pbot-listener",
+	"pbot-transceiver",
 	"pbot-admin",
 	"pbot-redis-test"
 ]
@@ -32,11 +32,12 @@ def devbounce(ctx):
 				container.kill()
 			container.remove()
 
-	# Delete pbot images
+	# Delete pbot images.
 	for image in client.images.list():
 		for image_name in CUSTOM_DOCKER_IMAGES:
 			if image_name in " ".join(image.tags):
 				print(image_name)
 				client.images.remove(image_name)
 
+	# Rebuild everything.
 	subprocess.run(["docker-compose", "-ppbot", "-f./config/docker-compose.yml", "up", "--detach"])

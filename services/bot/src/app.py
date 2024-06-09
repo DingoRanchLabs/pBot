@@ -1,132 +1,57 @@
-"""
-    Bot runner.
+"""Bot runner.
+
+In this file: configure dependencies, load middleware, run the bot.
 """
 
 import os
-from datetime import datetime
-# import random
-from logger import logger
+
 from redis import Redis
-import discord
-# from openai import OpenAI
-from discord.ext import commands
 from dotenv import load_dotenv
-from bot import (
-    active_channels,
-    channel_message_ids,
-    get_messages,
-    # num_tokens_from_string,
-    # trim_message_history,
-    # response_chance,
-    mark_as_read,
-    # generate_response,
-    # was_refused,
-    is_image
-)
 
-from bot.middleware import (
-	SimpleOpenAiResponseMiddleware,
-    TrimMessagesByTokens
-)
-
-# Params -----------------------------------------------------------------------
+from pbot.bot import PBot
+from pbot.constants import BOT_NAME
+from pbot.logger import get_logger
+from pbot.middleware.reload_prompt import ReloadPrompt
+from pbot.middleware.trim_messages_by_token import TrimMessagesByTokens
+from pbot.middleware.simple_openai import SimpleOpenAiResponseMiddleware
 
 
-REDIS_CHANNEL_KEY_PREFIX = "channel"
-REDIS_MESSAGE_KEY_PREFIX = "message"
-REDIS_RESPONSES_KEY = "responses"
-REDIS_RESPONSE_KEY_PREFIX = "response"
+# Configure environment.
+# ------------------------------------------------------------------------------
 
-
-# MAX_INPUT_TOKENS = 2000
-ACTIVE_CHANNEL_CUTOFF_HOURS = 48
-MESSAGE_HISTORY_CUTOFF_HOURS = 48
-
-# --------------------------------------------------------------------- / Params
-
+# Load required environment variables.
 load_dotenv()
+REDIS_HOST = os.getenv('REDIS_HOST')
+REDIS_PORT = os.getenv('REDIS_PORT')
+# OpenAI Middleware
+OPENAI_KEY = os.getenv("OPENAI_KEY")
 
-# Set up intents for bot.
-intents = discord.Intents.default()
-intents.messages = True
-intents.message_content = True
-bot = commands.Bot("", intents=intents)
+# Get bespoke logger for service.
+logger = get_logger()
 
-# Clients
-redis_client = Redis(host="redis", port=6379, decode_responses=True)
+# Set up Redis Client.
+redis = Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
 
-def message_filter_for_non_parse_users(message):
-    """
-
-    """
-
-    user_id = message["user"]
-
-    user = redis_client.hgetall(f"user:{user_id}")
-
-    if user["_parse_messages"] == "1":
-        return True
-    return False
-
-def message_filter_for_non_parse_servers(message):
-    """
-
-    """
-
-    server_id = message["server_id"]
-    server = redis_client.hgetall(f"server:{server_id}")
-    if server["_parse_messages"] == "1":
-        return True
-    return False
+# Create bot.
+bot = PBot(redis, logger)
 
 
-class PBot:
-    middlewares = []
+# Load bot middleware. (Order matters!)
+# ------------------------------------------------------------------------------
 
-    def __init__(self):
-        pass
+# Reload prompt every time.
+bot.add_middleware(ReloadPrompt(redis, "prompt.txt"))
 
-    def add_middleware(self, middleware):
-        self.middlewares.append(middleware)
+# Remove message history over limit.
+bot.add_middleware(TrimMessagesByTokens(redis))
 
-    def handle_messages(self, messages):
-        for middleware in self.middlewares:
-            messages = middleware.handle_messages(messages)
-
-    def run(self):
-        for channel_id in active_channels(redis_client,
-            hours=ACTIVE_CHANNEL_CUTOFF_HOURS):
-
-            # Ignore channel?
-            channel = redis_client.hgetall(f"{REDIS_CHANNEL_KEY_PREFIX}:{channel_id}")
-            if int(channel["_parse_messages"]) != 1:
-                print(f"Ignoring {channel_id}")
-                continue
-
-            message_ids = channel_message_ids(
-                redis_client,
-                channel_id,
-                hours=MESSAGE_HISTORY_CUTOFF_HOURS)
-
-            messages = get_messages(redis_client, message_ids)
-
-            # Are all messages already read?
-            if len(list(filter(lambda x:x["read"] == None, messages))) < 1:
-                continue
-
-            print(f"Handling {len(messages)} messages.")
-
-            self.handle_messages(messages)
-
-            print(f"Cleaning up {len(messages)} messages.")
-
-            mark_as_read(redis_client, messages)
+# Example AI middleware.
+bot.add_middleware(SimpleOpenAiResponseMiddleware(redis, OPENAI_KEY, logger))
 
 
-pbot = PBot()
+# Run the bot.
+# ------------------------------------------------------------------------------
 
-pbot.add_middleware(TrimMessagesByTokens(redis_client))
-pbot.add_middleware(SimpleOpenAiResponseMiddleware(redis_client, os.environ.get("OPENAI_KEY")))
-
-while True:
-    pbot.run()
+if __name__ == "__main__":
+    logger.debug(f"Starting {BOT_NAME}.")
+    bot.run()

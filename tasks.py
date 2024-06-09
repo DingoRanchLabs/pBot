@@ -1,5 +1,4 @@
-"""
-	General dev tasks.
+"""General dev tasks.
 """
 
 import subprocess
@@ -10,13 +9,16 @@ import docker
 CUSTOM_DOCKER_IMAGES = [
 	"pbot-bot",
 	"pbot-transceiver",
-	"pbot-admin",
-	"pbot-redis-test"
 ]
 
 client = docker.from_env()
 
 # Tasks ------------------------------------------------------------------------
+
+@task
+def doc(ctx):
+	pass
+
 
 @task
 def devbounce(ctx):
@@ -39,5 +41,6 @@ def devbounce(ctx):
 				print(image_name)
 				client.images.remove(image_name)
 
+	# FIXME: change cwd.
 	# Rebuild everything.
 	subprocess.run(["docker-compose", "-ppbot", "-f./config/docker-compose.yml", "up", "--detach"])

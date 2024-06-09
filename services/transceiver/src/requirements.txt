@@ -1,6 +1,5 @@
-# Transciever Python Requirements
+# Transceiver Python Requirements.
 
 redis
 discord
 python-dotenv
-pylint

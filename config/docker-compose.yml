@@ -1,15 +1,4 @@
-# Base compose file.
-
 services:
-
-  testdb: # dev only
-    image: redis/redis-stack-server
-    container_name: pbot-redis-test
-    ports:
-    - '1111:6379'
-    platform: linux/arm64
-    networks:
-    - backend
 
   redis:
     image: redis/redis-stack-server
@@ -22,12 +11,12 @@ services:
     networks:
     - backend
 
-  redis-insight: # dev only
+  redis-insight:
     image: redis/redisinsight:latest
     container_name: pbot-redis-insight
     ports:
     - '5540:5540'
-    # platform: linux/arm64
+    platform: linux/arm64
     depends_on:
     - redis
     networks:
@@ -36,14 +25,11 @@ services:
     volumes:
      - redis_insight:/data
 
-
   bot:
     container_name: pbot-bot
     build:
       context: ../
       dockerfile: services/bot/Dockerfile
-    ports:
-    - "6666:6666"
     volumes:
     - ../services/bot/src:/src
     depends_on:
@@ -51,12 +37,9 @@ services:
     networks:
     - backend
     environment:
-      - DISCORD_TOKEN=${DISCORD_TOKEN}
       - OPENAI_KEY=${OPENAI_KEY}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
-      - TEST_REDIS_HOST=${TEST_REDIS_HOST}
-      - TEST_REDIS_PORT=${TEST_REDIS_PORT}
 
   transceiver:
     container_name: pbot-transceiver
@@ -71,21 +54,13 @@ services:
     - backend
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
 
-  admin:
-    build:
-      context: ./services/admin
-      dockerfile: Dockerfile
-    container_name: pbot-admin
-    ports:
-    - "7777:7777"
-    volumes:
-    - ../services/admin/src:/src
-    depends_on:
-    - redis
-    networks:
-    - frontend
-    - backend
+      - REDIS_KEY_RESPONSES=${REDIS_KEY_RESPONSES}
+      - REDIS_KEY_RESPONSE_PREFIX=${REDIS_KEY_RESPONSE_PREFIX}
+      - TRANSCEIVER_LOG_FILENAME=${TRANSCEIVER_LOG_FILENAME}
+      - TRANSCEIVER_RESPONSE_DELAY=${TRANSCEIVER_RESPONSE_DELAY}
 
 volumes:
   redis_data:

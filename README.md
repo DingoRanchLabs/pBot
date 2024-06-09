@@ -4,6 +4,14 @@ Version 0.1.31
 
 Warning: This project is pre version 1!
 
+-***
+Design Questions
+
+- Shared data temporarily held in .env like redis structures
+- bools are 1 or 0 cast as ints at challenge time...
+
+
+-***
 
 
 
@@ -129,3 +137,32 @@ self-documenting as possible.
 
 
 .
+
+
+
+
+
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+.
+
+
+
+
+Genetating docs
+cd docs
+sphinx-apidoc -o source ../services/bot/src/pbot
+make clean html
+
+https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html

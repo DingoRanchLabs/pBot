@@ -1,11 +1,17 @@
-# Bot Python Requirements
+# Bot Python Requirements.
 
-openai
-tiktoken
-redis
-discord
+# Core dependencies.
+# ------------------------------------------------------------------------------
+
 python-dotenv
-ratelimit
+redis
 asyncio
+tiktoken
 pytest
 pylint
+
+# Optional middleware dependencies.
+# ------------------------------------------------------------------------------
+
+# SimpleOpenAiResponseMiddleware
+openai

@@ -11,11 +11,11 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /src
 
 # Install dependencies.
-COPY ./src/requirements.txt .
+COPY services/transceiver/src/requirements.txt .
 RUN pip3 install -r requirements.txt
 
 # Copy project.
-COPY ./src .
+COPY services/transceiver/src .
 
 # Start transceiver.
 CMD python3 app.py

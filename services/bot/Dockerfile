@@ -1,3 +1,5 @@
+# Bot Dockerfile.
+
 FROM python:3.12
 
 # Set environment variables

@@ -5,7 +5,7 @@ services:
     container_name: pbot-redis
     ports:
     - '6379:6379'
-    platform: linux/arm64
+    # platform: linux/arm64
     volumes:
      - redis_data:/data
     networks:
@@ -16,7 +16,7 @@ services:
     container_name: pbot-redis-insight
     ports:
     - '5540:5540'
-    platform: linux/arm64
+    # platform: linux/arm64
     depends_on:
     - redis
     networks:
@@ -44,8 +44,8 @@ services:
   transceiver:
     container_name: pbot-transceiver
     build:
-      context: ./services/transceiver
-      dockerfile: Dockerfile
+      context: ../
+      dockerfile: services/transceiver/Dockerfile
     volumes:
     - ../services/transceiver/src:/src
     depends_on:

@@ -3,6 +3,7 @@
 TODO: Refactor into models.
 """
 
+from urllib.parse import urlparse
 from datetime import datetime
 
 import redis

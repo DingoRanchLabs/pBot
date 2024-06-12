@@ -40,10 +40,10 @@ discord_client = discord.Client(intents=intents())
 
 @tasks.loop(seconds=float(TRANSCEIVER_RESPONSE_DELAY))
 async def send_responses() -> None:
-    """Asynchronously send any waiting responses in Redis.
+    """Send any waiting responses in Redis.
     """
-    for unsent_response in get_unsent_responses():
-        handle_response(discord_client, unsent_response)
+    for unsent_response in get_unsent_responses(redis_client):
+        await handle_response(discord_client, redis_client ,unsent_response)
 
 
 # Handle Discord events.

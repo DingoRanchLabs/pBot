@@ -159,8 +159,6 @@ class SimpleOpenAiResponseMiddleware(Middleware):
 
         try:
             completetion = self.generate_completion(messages, target_id, prompt)
-            self.logger.debug(completetion)
-
         except Exception as error:
             self.logger.error(error)
 

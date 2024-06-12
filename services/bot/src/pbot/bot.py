@@ -74,7 +74,7 @@ class PBot:
 
                 # Skip ignored channels.
                 channel = self.redis.hgetall(f"{REDIS_CHANNEL_KEY_PREFIX}:{channel_id}")
-                if int(channel["_parse_messages"]) != 1:
+                if int(channel["parse"]) != 1:
                     continue
 
                 # Fetch message history.

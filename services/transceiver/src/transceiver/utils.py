@@ -46,7 +46,7 @@ async def send_message(message: discord.Message, content: str) -> None:
     except Exception as error: # FIXME: too permissive--don't try forever
         logger.error(error)
 
-async def handle_response(discord_client: discord.Client, response: dict[str, any]) -> None:
+async def handle_response(discord_client: discord.Client, redis_conn: redis.Redis, response: dict[str, any]) -> None:
     """Asynchronously handles sending single/multi-part messages to Discord
     for a given response.
 
@@ -66,10 +66,10 @@ async def handle_response(discord_client: discord.Client, response: dict[str, an
             await send_message(message, chunk)
 
     else:
-       send_message(message, response["content"])
+       await send_message(message, response["content"])
 
     # Mark response as sent.
-    redis.hset(f"{REDIS_KEY_RESPONSE_PREFIX}:{response['id']}", "sent", datetime.now().timestamp())
+    redis_conn.hset(f"{REDIS_KEY_RESPONSE_PREFIX}:{response['id']}", "sent", datetime.now().timestamp())
 
 def handle_message(redis_conn: redis.Redis, message: discord.Message) -> None:
     """Handle an incoming Discord message.
@@ -118,9 +118,9 @@ def get_unsent_responses(redis_conn: redis.Redis) -> list[dict]:
 
             # Ensure Server, Channel, and User are allowed responses.
             if all([
-                int(server["_send_responses"]) == 1,
-                int(channel["_send_responses"]) == 1,
-                int(user["_send_responses"]) == 1
+                int(server["respond"]) == 1,
+                int(channel["respond"]) == 1,
+                int(user["respond"]) == 1
             ]): # FIXME: handle ignored responses clogging queue.
                 unsent.append(response)
 
@@ -139,12 +139,12 @@ def format_message_for_log(message: discord.Message) -> str:
     log_str = "{created}|{msg_id}|{server}.{channel}|{author}({nick}):{content}"
 
     # Populate template.
-    log_str = log_str.replace("{created}", message.created_at)
-    log_str = log_str.replace("{msg_id}", message.id)
+    log_str = log_str.replace("{created}", str(message.created_at))
+    log_str = log_str.replace("{msg_id}", str(message.id))
     log_str = log_str.replace("{server}", message.guild.name)
     log_str = log_str.replace("{channel}", message.channel.name)
     log_str = log_str.replace("{author}", message.author.name)
-    log_str = log_str.replace("{nick}", message.author.nick)
+    log_str = log_str.replace("{nick}", str(message.author.nick))
     log_str = log_str.replace("{content}", message.content)
 
     return log_str

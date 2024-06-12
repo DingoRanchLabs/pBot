@@ -14,11 +14,8 @@ WORKDIR /src
 COPY services/bot/src/requirements.txt .
 RUN pip3 install -r requirements.txt
 
-# Copy persona prompt
-# COPY config/persona-prompt.txt .
-
 # Copy project
 COPY services/bot/src .
 
-# FIXME: call app instead of just run forever..
-CMD tail -f /dev/null
+# Start the bot.
+CMD python3 app.py

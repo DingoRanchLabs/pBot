@@ -43,7 +43,7 @@ async def send_responses() -> None:
     """Send any waiting responses in Redis.
     """
     for unsent_response in get_unsent_responses(redis_client):
-        await handle_response(discord_client, redis_client ,unsent_response)
+        await handle_response(discord_client, redis_client, unsent_response)
 
 
 # Handle Discord events.

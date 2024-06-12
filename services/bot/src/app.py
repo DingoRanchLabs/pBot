@@ -45,8 +45,10 @@ bot.add_middleware(ReloadPrompt(redis, "prompt.txt"))
 # Remove message history over limit.
 bot.add_middleware(TrimMessagesByTokens(redis))
 
+
+
 # Example AI middleware.
-bot.add_middleware(SimpleOpenAiResponseMiddleware(redis, OPENAI_KEY, logger))
+# bot.add_middleware(SimpleOpenAiResponseMiddleware(redis, OPENAI_KEY, logger))
 
 
 # Run the bot.

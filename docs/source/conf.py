@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath('../../services/transceiver/src/transceiver/'
 
 
 release = 0
-with open('../../VERSION', 'r') as f:
+with open('../../version', 'r') as f:
     release = f.read().strip()
 
 html_title = f"PBot Docs<br/><small>{release}</small>"

@@ -2,7 +2,6 @@
 
 docker
 invoke
-discord
-pylint
 sphinx
 sphinx-autodoc-typehints
+furo

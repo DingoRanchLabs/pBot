@@ -1,13 +1,14 @@
 Bot Service
 ###########
 
---------------------------------------------------------------------------------
-
 =======
 Summary
 =======
 
 The bot service....
+
+
+
 
 ==========
 Dockerfile
@@ -15,6 +16,8 @@ Dockerfile
 
 .. include:: ../../services/bot/Dockerfile
    :literal:
+
+
 
 ======
 app.py

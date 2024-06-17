@@ -1,8 +1,6 @@
 Constants
 #########
 
---------------------------------------------------------------------------------
-
 .. automodule:: transceiver.constants
    :members:
    :undoc-members:

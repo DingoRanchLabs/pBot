@@ -88,6 +88,5 @@ class PBot:
                 # Push messages through middleware.
                 self.handle_messages(messages)
 
-                # Clean up and mark processed messages as read.
-                self.logger.debug(f"Cleaning up {len(messages)} messages.")
+                # Clean up.
                 mark_as_read(self.redis, messages)

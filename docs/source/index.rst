@@ -5,7 +5,7 @@ Welcome to PBot's documentation!
 What is PBot?
 =============
 
-PBot is a minimal, dockerized framework for building Discord chatbots.
+PBot is a minimal, dockerized framework for building chatbots on top of Discord.
 
 It's meant to serve as a base for your own business logic, abstracting away
 everything that isn't the fun parts of building a chatbot. Pbot revolves around

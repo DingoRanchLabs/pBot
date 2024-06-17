@@ -114,7 +114,9 @@ def get_unsent_responses(redis_conn: redis.Redis) -> list[dict]:
         user = redis_conn.hgetall(f"user:{user_id}")
 
         # Handle an unsent response.
-        if response and response["sent"] == "":
+        if response and (response["sent"] == None or response["sent"] == ""):
+
+            print("-")
 
             # Ensure Server, Channel, and User are allowed responses.
             if all([

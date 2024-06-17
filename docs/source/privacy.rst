@@ -1,8 +1,6 @@
 A Note on Privacy
 #################
 
---------------------------------------------------------------------------------
-
 This project is based on Discord, a private 3rd party service.
 You should have no expectation of true privacy.
 

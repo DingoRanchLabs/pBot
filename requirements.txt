@@ -1,7 +1,5 @@
 # Local Development Python Requirements
 
-docker
-invoke
 sphinx
 sphinx-autodoc-typehints
 furo

@@ -14,7 +14,7 @@ from pbot.logger import get_logger
 from pbot.middleware.reload_prompt import ReloadPrompt
 from pbot.middleware.trim_messages_by_token import TrimMessagesByTokens
 from pbot.middleware.simple_openai import SimpleOpenAiResponseMiddleware
-
+from pbot.middleware.tacos import TacoRecipes
 
 # Configure environment.
 # ------------------------------------------------------------------------------
@@ -45,11 +45,11 @@ bot.add_middleware(ReloadPrompt(redis, "prompt.txt"))
 # Remove message history over limit.
 bot.add_middleware(TrimMessagesByTokens(redis))
 
-
+# Handle taco-time! (Test your bot works out of the box.)
+bot.add_middleware(TacoRecipes(redis))
 
 # Example AI middleware.
 # bot.add_middleware(SimpleOpenAiResponseMiddleware(redis, OPENAI_KEY, logger))
-
 
 # Run the bot.
 # ------------------------------------------------------------------------------

@@ -1,8 +1,6 @@
 Constants
 #########
 
---------------------------------------------------------------------------------
-
 .. automodule:: pbot.constants
    :members:
    :undoc-members:

@@ -8,20 +8,34 @@ from pbot.utils import create_response
 
 
 class TacoRecipes(Middleware):
-    """
+    """Taco Middleware!
+
+    This middleware is loaded by default and serves as an initial test of your
+    bot's connection to a Discord server.
+
+    Any mention of the word "taco" will be met with a random taco recipe.
     """
 
     KEYWORDS = ["taco"]
 
     def __init__(self, redis: Redis) -> None:
-        """
+        """Constructor.
+
+        Args:
+            redis (Redis): Redis connection.
         """
         self.redis = redis
 
     def handle_messages(self, messages: list[dict]) -> list[dict]:
-        messages.sort(key=lambda x: float(x["time"]), reverse=False) # Ascending.
+        """Fires back a taco recipe at anyone bold enough to mention them!
 
-        print(len(messages))
+        Args:
+            messages (list[dict]): A list of messages.
+
+        Returns:
+            list[dict]: A list of messages.
+        """
+        messages.sort(key=lambda x: float(x["time"]), reverse=False) # Ascending.
 
         for message in messages:
 
@@ -31,9 +45,13 @@ class TacoRecipes(Middleware):
 
             # Ignore responded messages.
             if message["response"] == "" or message["response"] == None:
+
                 for keyword in self.KEYWORDS:
+
+                    # Respond if magic word is found in message history.
                     if keyword.lower() in message["content"].lower():
-                        # Create a GUID.
+
+                        # Create a response GUID.
                         resp_id = f"taco{datetime.now().timestamp()}"
 
                         # Preach the gospel of tacos.

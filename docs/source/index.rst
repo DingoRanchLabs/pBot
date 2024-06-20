@@ -8,9 +8,10 @@ What is PBot?
 PBot is a minimal, dockerized framework for building chatbots on top of Discord.
 
 It's meant to serve as a base for your own business logic, abstracting away
-everything that isn't the fun parts of building a chatbot. Pbot revolves around
+everything that isn't the fun parts of building a chatbot. PBot revolves around
 the idea of `middleware <overview.html#chatbot-middleware>`_. You can write a
-middleware layer to do anything. Just `drop your code in place and run the bot <get_started.html>`_.
+middleware layer to do anything. Just
+`drop your code in place and run the bot <get_started.html>`_.
 
 ==============================
 Who is this project meant for?
@@ -34,8 +35,6 @@ Today, PBot includes optional middleware for integrating with Chat GPT. Use,
 extend, or disregard this middleware. Midjourney image middleware is also
 currently being ported over to this updated version of the project.
 
-
-
 --------------------------------------------------------------------------------
 
 .. toctree::
@@ -43,9 +42,7 @@ currently being ported over to this updated version of the project.
 
    overview
    get_started
+   custom_middleware
    api
    privacy
    download
-
-.. |ROBOTFACE|   unicode:: U+1F916 .. ROBOTFACE
-.. |CHATBUBBLES|   unicode:: U+1F4AC .. CHATBUBBLES

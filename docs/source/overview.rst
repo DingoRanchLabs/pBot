@@ -8,8 +8,6 @@ for any open source project adoption.
 
 --------------------------------------------------------------------------------
 
-|
-
 ========
 Services
 ========
@@ -87,14 +85,6 @@ a list. What your middleware otherwise does, is entirely up to you.
    When authoring middleware and mutating the message history, consider clean up like marking removed messages as read.
 
 |
-
-Included Middleware
--------------------
-These optional middleware either serve as example or facilitate basic utility functions.
-
-- `Reload Prompt <api_bot.middleware.html#reload-prompt-middleware>`_
-- `Trim Messages by Tokens <api_bot.middleware.html#trim-messages-by-tokens-middleware>`_
-- `Simple OpenAI Middleware <api_bot.middleware.html#simple-openai-middleware>`_
 
 --------------------------------------------------------------------------------
 

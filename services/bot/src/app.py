@@ -11,9 +11,6 @@ from dotenv import load_dotenv
 from pbot.bot import PBot
 from pbot.constants import BOT_NAME
 from pbot.logger import get_logger
-from pbot.middleware.reload_prompt import ReloadPrompt
-from pbot.middleware.trim_messages_by_token import TrimMessagesByTokens
-from pbot.middleware.simple_openai import SimpleOpenAiResponseMiddleware
 from pbot.middleware.tacos import TacoRecipes
 
 # Configure environment.
@@ -23,8 +20,6 @@ from pbot.middleware.tacos import TacoRecipes
 load_dotenv()
 REDIS_HOST = os.getenv('REDIS_HOST')
 REDIS_PORT = os.getenv('REDIS_PORT')
-# OpenAI Middleware
-OPENAI_KEY = os.getenv("OPENAI_KEY")
 
 # Get bespoke logger for service.
 logger = get_logger()
@@ -35,21 +30,11 @@ redis = Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
 # Create bot.
 bot = PBot(redis, logger)
 
-
 # Load bot middleware. (Order matters!)
 # ------------------------------------------------------------------------------
 
-# Reload prompt every time.
-bot.add_middleware(ReloadPrompt(redis, "prompt.txt"))
-
-# Remove message history over limit.
-bot.add_middleware(TrimMessagesByTokens(redis))
-
-# Handle taco-time! (Test your bot works out of the box.)
+# Tests your bot works out of the box.
 bot.add_middleware(TacoRecipes(redis))
-
-# Example AI middleware.
-# bot.add_middleware(SimpleOpenAiResponseMiddleware(redis, OPENAI_KEY, logger))
 
 # Run the bot.
 # ------------------------------------------------------------------------------

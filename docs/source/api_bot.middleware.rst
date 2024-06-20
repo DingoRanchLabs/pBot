@@ -16,6 +16,16 @@ The Middleware Base Class
 Included Middleware
 ===================
 
+Taco Middleware
+------------------------
+
+.. autoclass:: pbot.middleware.tacos.TacoRecipes
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+
 Reload Prompt Middleware
 ------------------------
 
